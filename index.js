@@ -1,9 +1,10 @@
 const puppeteer = require('puppeteer');
 
 async function runTask() {
-  // Launch Puppeteer with flags suitable for cloud environments
+  // Launch Puppeteer with our installed Chromium executable
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
@@ -11,12 +12,11 @@ async function runTask() {
   // Navigate to the target URL and wait until the network is idle
   await page.goto('http://testingimp.great-site.net', { waitUntil: 'networkidle0' });
 
-  // Inject your code into the page
+  // Inject your automation code into the page
   await page.evaluate(() => {
     // Function to set input field value and dispatch events
     function setInputValue() {
       let inputField = document.querySelector("input.form-control.text-center");
-
       if (inputField) {
         let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
         nativeInputValueSetter.call(inputField, "http://testingimp.great-site.net");
@@ -25,8 +25,7 @@ async function runTask() {
         inputField.dispatchEvent(new Event("change", { bubbles: true }));
 
         console.log("URL set successfully!");
-
-        // Wait for 3 seconds before clicking the launch button
+        // Wait 3 seconds before clicking the launch button
         setTimeout(clickLaunchButton, 3000);
       } else {
         console.error("Input field not found!");
@@ -36,13 +35,11 @@ async function runTask() {
     // Function to click the "Launch a new Workspace" button
     function clickLaunchButton() {
       let launchButton = document.querySelector("button.btn.btn-primary.w-100pc.m-2");
-
       if (launchButton) {
         launchButton.click();
         console.log("Launch button clicked!");
-
-        // Wait for 15 seconds before running the exit button code (adjusted from 10 minutes to 15 seconds)
-        setTimeout(clickExitButton, 15000);
+        // Wait 15 seconds before clicking the exit button
+        setTimeout(clickExitButton, 600000);
       } else {
         console.error("Launch button not found!");
       }
@@ -54,8 +51,7 @@ async function runTask() {
       if (exitButton) {
         exitButton.click();
         console.log("Exit button clicked.");
-
-        // Wait for 5 seconds before clicking the delete button
+        // Wait 5 seconds before clicking the delete button
         setTimeout(clickDeleteButton, 5000);
       } else {
         console.error("Exit button not found!");
@@ -73,19 +69,17 @@ async function runTask() {
       }
     }
 
-    // Run the function to start the process
+    // Start the sequence
     setInputValue();
   });
 
-  // Wait for 30 seconds to allow all scheduled actions to complete
+  // Wait for 30 seconds to allow all scheduled events to complete
   await new Promise(resolve => setTimeout(resolve, 30000));
 
-  // Close the browser instance
   await browser.close();
 }
 
 (async () => {
-  // Repeat the process indefinitely
   while (true) {
     try {
       console.log("Starting new iteration...");
