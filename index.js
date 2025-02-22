@@ -1,7 +1,10 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
+const LOG_FILE = 'process.log';
+
 const app = express();
 
 // Dummy route to satisfy Render's port binding
@@ -12,8 +15,17 @@ app.get('/', (req, res) => {
 // Start the Express server
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
 
+// Utility function to log messages with a timestamp.
+// Each message is appended to the log file and printed to the console.
+function logMessage(msg) {
+  const timestamp = new Date().toISOString();
+  const message = `${timestamp} - ${msg}\n`;
+  fs.appendFileSync(LOG_FILE, message);
+  console.log(message);
+}
+
 async function runTask() {
-  // Launch Puppeteer with the installed Chromium executable
+  logMessage("Launching Puppeteer browser...");
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -21,13 +33,13 @@ async function runTask() {
   });
   const page = await browser.newPage();
 
-  // Navigate to the target URL and wait until the network is idle
+  logMessage("Navigating to target URL...");
   await page.goto('https://browser.lol/create', { waitUntil: 'networkidle0' });
   
-  // Wait for 10 seconds after the page is loaded
-  await page.waitForTimeout(10000);
+  logMessage("Waiting 10 seconds after page load...");
+  await page.waitForTimeout(20000);
 
-  // Inject your automation code into the page
+  logMessage("Injecting automation code...");
   await page.evaluate(() => {
     // Function to set input field value and dispatch events
     function setInputValue() {
@@ -38,7 +50,6 @@ async function runTask() {
         inputField.dispatchEvent(new Event("input", { bubbles: true }));
         inputField.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("URL set successfully!");
-        // Wait 3 seconds before clicking the launch button
         setTimeout(clickLaunchButton, 3000);
       } else {
         console.error("Input field not found!");
@@ -51,8 +62,7 @@ async function runTask() {
       if (launchButton) {
         launchButton.click();
         console.log("Launch button clicked!");
-        // Wait 15 seconds before clicking the exit button
-        setTimeout(clickExitButton, 15000);
+        setTimeout(clickExitButton, 600000);
       } else {
         console.error("Launch button not found!");
       }
@@ -64,7 +74,6 @@ async function runTask() {
       if (exitButton) {
         exitButton.click();
         console.log("Exit button clicked.");
-        // Wait 5 seconds before clicking the delete button
         setTimeout(clickDeleteButton, 5000);
       } else {
         console.error("Exit button not found!");
@@ -86,18 +95,23 @@ async function runTask() {
     setInputValue();
   });
 
-  // Wait for 30 seconds to allow all scheduled events to complete
+  logMessage("Automation code injected. Waiting 30 seconds for scheduled events...");
   await page.waitForTimeout(30000);
+
+  logMessage("Closing browser...");
   await browser.close();
+  logMessage("Browser closed. Task iteration complete.");
 }
 
 (async () => {
   while (true) {
     try {
-      console.log("Starting new iteration...");
+      // Clear the log file at the start of each iteration so that logs don't accumulate
+      fs.writeFileSync(LOG_FILE, '');
+      logMessage("Starting new iteration...");
       await runTask();
     } catch (error) {
-      console.error("Error during task execution:", error);
+      logMessage("Error during task execution: " + error);
     }
   }
 })();
