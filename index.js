@@ -22,7 +22,7 @@ async function runTask() {
   const page = await browser.newPage();
 
   // Navigate to the target URL and wait until the network is idle
-  await page.goto('http://testingimp.great-site.net', { waitUntil: 'networkidle0' });
+  await page.goto('https://browser.lol/create', { waitUntil: 'networkidle0' });
 
   // Inject your automation code into the page
   await page.evaluate(() => {
