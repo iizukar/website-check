@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-automation",
   "version": "1.0.0",
-  "description": "Automates a workflow on http://testingimp.great-site.net using Puppeteer",
+  "description": "Automates interactions on http://testingimp.great-site.net using Puppeteer",
   "main": "index.js",
   "dependencies": {
     "puppeteer": "^19.0.0"
