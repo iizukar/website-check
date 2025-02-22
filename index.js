@@ -23,6 +23,9 @@ async function runTask() {
 
   // Navigate to the target URL and wait until the network is idle
   await page.goto('https://browser.lol/create', { waitUntil: 'networkidle0' });
+  
+  // Wait for 10 seconds after the page is loaded
+  await page.waitForTimeout(10000);
 
   // Inject your automation code into the page
   await page.evaluate(() => {
@@ -49,7 +52,7 @@ async function runTask() {
         launchButton.click();
         console.log("Launch button clicked!");
         // Wait 15 seconds before clicking the exit button
-        setTimeout(clickExitButton, 600000);
+        setTimeout(clickExitButton, 15000);
       } else {
         console.error("Launch button not found!");
       }
@@ -84,8 +87,7 @@ async function runTask() {
   });
 
   // Wait for 30 seconds to allow all scheduled events to complete
-  await new Promise(resolve => setTimeout(resolve, 30000));
-
+  await page.waitForTimeout(30000);
   await browser.close();
 }
 
